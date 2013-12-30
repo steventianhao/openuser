@@ -1,18 +1,22 @@
+%%-*- mode: erlang -*-
 {application, openuser,
  [
-  {description, ""},
+  {description, "openuser"},
   {vsn, "1"},
+  {modules, []},
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  inets,
+                  crypto,
+                  riakc_pool,
+                  mochiweb,
+                  webmachine
                  ]},
   {mod, { openuser_app, []}},
   {env, [
-  	{pool,[{size,10},{max_overflow,20}]},
-  	{riakc,[
-  		{address,"127.0.0.1"},
-  		{port,8087},
-  		{options,[]}]}
+    {pool,[{size,10},max_overflow,20]},
+    {riakc,[{address,"127.0.0.1"},{port,8087}]}
   ]}
  ]}.
