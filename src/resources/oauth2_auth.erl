@@ -3,6 +3,16 @@
 
 -include_lib("webmachine/include/webmachine.hrl").
 
+% response_type="code"
+%access_type="online"|"offline" default is online
+%approval_prompt="force"|"auto" default is auto
+%login_hint
+%include_granted_scopes=true|false
+
+-record(oauth2webserver,{
+	response_type="code",client_id,redirect_uri,scope,state,access_type="online",
+	approval_prompt="auto",login_hint,include_granted_scopes="true"}).
+
 init([])->
 	{ok,undefined}.
 
@@ -13,9 +23,30 @@ content_types_provided(ReqData,Context)->
 	{[{"text/html",process_get},{"text/html",process_post}],ReqData,Context}.
 
 process_post(ReqData,Context)->
-	Body=io_lib:format("<html><body>aaa</body></html>",[]),
+	P=extract_parameters(http_utils:parse_body(ReqData)),
+	Body=io_lib:format("<html><body>hello nimei ~p,~p</body></html>",[ReqData,P]),
 	{Body,ReqData,Context}.
 
 process_get(ReqData,Context)->
-	Body=io_lib:format("hello",[]),
+	P=extract_parameters(wrq:req_qs(ReqData)),
+	Body=io_lib:format("<html><body>hello nimei ~p,~p</body></html>",[ReqData,P]),
 	{Body,ReqData,Context}.
+
+
+
+extract_parameters(ReqData)->
+	ResponseType=http_utils:get_qs_value("response_type",ReqData),
+	ClientId=http_utils:get_qs_value("client_id",ReqData),
+	RedirectUri=http_utils:get_qs_value("redirect_uri",ReqData),
+	Scope=http_utils:get_qs_value("scope",ReqData),
+	State=http_utils:get_qs_value("state",ReqData),
+	AccessType=http_utils:get_qs_value("access_type","online",ReqData),
+	ApprovalPrompt=http_utils:get_qs_value("approval_prompt","auto",ReqData),
+	LoginHint=http_utils:get_qs_value("login_hint",ReqData),
+	IncludeGrantedScopes=http_utils:get_qs_value("include_granted_scopes","true",ReqData),
+	#oauth2webserver{response_type=ResponseType,client_id=ClientId,
+	redirect_uri=RedirectUri,scope=Scope,state=State,
+	access_type=AccessType,approval_prompt=ApprovalPrompt,
+	login_hint=LoginHint,include_granted_scopes=IncludeGrantedScopes}.
+
+
