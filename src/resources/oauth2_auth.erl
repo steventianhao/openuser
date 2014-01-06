@@ -3,6 +3,22 @@
 
 -include_lib("webmachine/include/webmachine.hrl").
 
+-define(RESPONSE_TYPE,"response_type").
+-define(CLIENT_ID,"client_id").
+-define(REDIRECT_URI,"redirect_uri").
+-define(SCOPE,"scope").
+-define(STATE,"state").
+-define(ACCESS_TYPE,"access_type").
+-define(APPROVAL_PROMPT,"approval_prompt").
+-define(LOGIN_HINT,"login_hint").
+-define(INCLUDE_GRANTED_SCOPES,"include_granted_scopes").
+
+-define(ONLINE,"online").
+-define(CODE,"code").
+-define(TRUE,"true").
+-define(AUTO,"auto").
+
+
 % response_type="code"
 %access_type="online"|"offline" default is online
 %approval_prompt="force"|"auto" default is auto
@@ -10,8 +26,8 @@
 %include_granted_scopes=true|false
 
 -record(oauth2webserver,{
-	response_type="code",client_id,redirect_uri,scope,state,access_type="online",
-	approval_prompt="auto",login_hint,include_granted_scopes="true"}).
+	response_type=?CODE,client_id,redirect_uri,scope,state,access_type=?ONLINE,
+	approval_prompt=?AUTO,login_hint,include_granted_scopes=?TRUE}).
 
 init([])->
 	{ok,undefined}.
@@ -47,15 +63,16 @@ process_get(ReqData,Context)->
 
 
 extract_parameters(ReqData)->
-	ResponseType=http_utils:get_qs_value("response_type",ReqData),
-	ClientId=http_utils:get_qs_value("client_id",ReqData),
-	RedirectUri=http_utils:get_qs_value("redirect_uri",ReqData),
-	Scope=http_utils:get_qs_value("scope",ReqData),
-	State=http_utils:get_qs_value("state",ReqData),
-	AccessType=http_utils:get_qs_value("access_type","online",ReqData),
-	ApprovalPrompt=http_utils:get_qs_value("approval_prompt","auto",ReqData),
-	LoginHint=http_utils:get_qs_value("login_hint",ReqData),
-	IncludeGrantedScopes=http_utils:get_qs_value("include_granted_scopes","true",ReqData),
+	ResponseType=http_utils:get_qs_value(?RESPONSE_TYPE,ReqData),
+	ClientId=http_utils:get_qs_value(?CLIENT_ID,ReqData),
+	RedirectUri=http_utils:get_qs_value(?REDIRECT_URI,ReqData),
+	Scope=http_utils:get_qs_value(?SCOPE,ReqData),
+	State=http_utils:get_qs_value(?STATE,ReqData),
+	AccessType=http_utils:get_qs_value(?ACCESS_TYPE,?ONLINE,ReqData),
+	ApprovalPrompt=http_utils:get_qs_value(?APPROVAL_PROMPT,?AUTO,ReqData),
+	LoginHint=http_utils:get_qs_value(?LOGIN_HINT,ReqData),
+	IncludeGrantedScopes=http_utils:get_qs_value(?INCLUDE_GRANTED_SCOPES,?TRUE,ReqData),
+	
 	#oauth2webserver{response_type=ResponseType,client_id=ClientId,
 	redirect_uri=RedirectUri,scope=Scope,state=State,
 	access_type=AccessType,approval_prompt=ApprovalPrompt,
