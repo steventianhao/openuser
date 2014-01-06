@@ -24,13 +24,25 @@ content_types_provided(ReqData,Context)->
 
 process_post(ReqData,Context)->
 	P=extract_parameters(http_utils:parse_body(ReqData)),
-	Body=io_lib:format("<html><body>hello nimei ~p,~p</body></html>",[ReqData,P]),
-	{Body,ReqData,Context}.
+	case P#oauth2webserver.client_id of 
+		undefined->
+			{ok,Body}=bad_request_dtl:render([]),
+			{{halt,400},wrq:set_resp_body(Body,ReqData),Context};
+		_ClientId ->
+			Body=io_lib:format("<html><body>hello nimei ~p,~p</body></html>",[ReqData,P]),
+			{Body,ReqData,Context}
+	end.
 
 process_get(ReqData,Context)->
 	P=extract_parameters(wrq:req_qs(ReqData)),
-	Body=io_lib:format("<html><body>hello nimei ~p,~p</body></html>",[ReqData,P]),
-	{Body,ReqData,Context}.
+	case P#oauth2webserver.client_id of 
+		undefined->
+			{ok,Body}=bad_request_dtl:render([]),
+			{{halt,400},wrq:set_resp_body(Body,ReqData),Context};
+		_ClientId ->
+			Body=io_lib:format("<html><body>hello nimei ~p,~p</body></html>",[ReqData,P]),
+			{Body,ReqData,Context}
+	end.
 
 
 
