@@ -1,16 +1,24 @@
 -module(oauth2_riak).
 
--export([get_redirect_uri/1]).
+-export([get_nonempty_redirect_uri/1]).
 
 -define(BUCKET_CLIENT,<<"clients">>).
 
+-record(client,{name::string(),client_id::string(),client_secret::string(),redirect_uri::string()}).
+
 % only return ok if redirect_uri is non-empty string, else return {error,notfound}
-%% TODO
-get_redirect_uri(ClientId)->
+-spec get_nonempty_redirect_uri(ClientId::string()) -> {error,notfound} | {ok,string()}.
+get_nonempty_redirect_uri(ClientId)->
 	case riakcp:exec(get,[?BUCKET_CLIENT,ClientId]) of
-		NotFound={error,notfound} -> NotFound;
-		{ok,Obj} -> {ok, binary_to_term(riakc_obj:get_value(Obj))}
+		NotFound={error,notfound} -> 
+			NotFound;
+		{ok,Obj} -> 
+			#client{redirect_uri=RedirectUri}=binary_to_term(riakc_obj:get_value(Obj)),
+			case RedirectUri of 
+				"" -> {error,notfound};
+				_ -> {ok, RedirectUri}
+			end
 	end.
 
-
-	
+update_redirect_uri()->
+	undefined.
