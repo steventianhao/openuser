@@ -5,6 +5,10 @@
 </head>
 
 authorization form
+client_id is {{client_id}},
+redirect_uri is {{redirect_uri}},
+state is {{state}}
+scope is {{scope}}
 
 </body>
 </html>

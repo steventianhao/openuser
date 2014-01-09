@@ -46,7 +46,7 @@ extract_parameters(ReqData)->
 	login_hint=LoginHint,include_granted_scopes=IncludeGrantedScopes}.
 
 init([])->
-	{ok,undefined}.
+	{{trace,"/tmp"},undefined}.
 
 allowed_methods(ReqData,Context)->
 	{['GET','POST'],ReqData,Context}.
@@ -83,15 +83,32 @@ compare_redirect_uri(RegisteredUri,RedirectUri)->
 		 _ -> mismatch
 	end.
 
+set_redirect_error_header(ReqData,Uri,State,Error)->
+	case State of 
+		undefined ->
+			wrq:set_resp_header("Location",Uri++"?error="++Error,ReqData);
+		_ ->
+			wrq:set_resp_header("Location",Uri++"?error="++Error++"&state="++State,ReqData)
+	end.
 
 handle_redirect_uri(ReqData,Context,Oauth2Rec)->
-	#oauth2webserver{client_id=ClientId,redirect_uri=RedirectUri}=Oauth2Rec,
+	#oauth2webserver{client_id=ClientId,redirect_uri=RedirectUri,response_type=ResponseType,state=State,scope=Scope}=Oauth2Rec,
 	case oauth2_riak:get_nonempty_redirect_uri(ClientId) of
 		{ok,RegisteredUri} ->
 		 	case compare_redirect_uri(RegisteredUri,RedirectUri) of
 		 		{match, _} ->
-		 			 {ok,Body}=authorization_form_dtl:render([]),
-		 			 {Body,ReqData,Context};
+		 				case ResponseType of
+		 					"code"->
+		 						ParamList=[{client_id,ClientId},{redirect_uri,RegisteredUri},{state,State},{scope,Scope}],
+		 			 			{ok,Body}=authorization_form_dtl:render(ParamList),
+		 			 			{Body,ReqData,Context};
+		 			 		undefined->
+		 			 			NewReqData=set_redirect_error_header(ReqData,RegisteredUri,State,"invalid_request"),
+		 			 			{{halt,302},NewReqData,Context};
+		 			 		_->
+		 			 			NewReqData=set_redirect_error_header(ReqData,RegisteredUri,State,"unsupported_response_type"),
+		 			 			{{halt,302},NewReqData,Context}
+		 			 	end;
 		 		mismatch ->
 		 			{ok,Body}=invalid_redirect_uri_dtl:render([]),
 					{{halt,401},wrq:set_resp_body(Body,ReqData),Context}
