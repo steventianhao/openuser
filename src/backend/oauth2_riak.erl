@@ -9,7 +9,7 @@
 % only return ok if redirect_uri is non-empty string, else return {error,notfound}
 -spec get_nonempty_redirect_uri(ClientId::string()) -> {error,notfound} | {ok,string()}.
 get_nonempty_redirect_uri(ClientId)->
-	case riakcp:exec(get,[?BUCKET_CLIENT,ClientId]) of
+	case riakcp:exec(get,[?BUCKET_CLIENT,list_to_binary(ClientId)]) of
 		NotFound={error,notfound} -> 
 			NotFound;
 		{ok,Obj} -> 
@@ -19,6 +19,3 @@ get_nonempty_redirect_uri(ClientId)->
 				_ -> {ok, RedirectUri}
 			end
 	end.
-
-update_redirect_uri()->
-	undefined.
